@@ -29,8 +29,7 @@ function saveAll() {
 }
 
 function resetAllData() {
-  if (!confirm('⚠️ Yakin reset SEMUA data? (Siswa, Guru, Nilai, Ujian, Jadwal, Absensi)
-Data demo akan dikembalikan.')) return;
+  if (!confirm('⚠️ Yakin reset SEMUA data? (Siswa, Guru, Nilai, Ujian, Jadwal, Absensi)\nData demo akan dikembalikan.')) return;
   LS.del('siswa_master');
   LS.del('guru_data');
   LS.del('nilai_data');
@@ -64,11 +63,7 @@ function lsInfo() {
     if (v) total += v.length;
     return k + ': ' + (v ? sz + ' KB' : '—');
   });
-  alert('📦 LocalStorage Usage:
-' + info.join('
-') + '
-
-Total: ' + (total/1024).toFixed(1) + ' KB');
+  alert('📦 LocalStorage Usage:\n' + info.join('\n') + '\n\nTotal: ' + (total/1024).toFixed(1) + ' KB');
 }
 
 // ============================================================
@@ -1870,8 +1865,7 @@ function jadwalRender() {
   const ROM   = {1:'I',2:'II',3:'III',4:'IV',5:'V',6:'VI'};
   const NAMA  = {1:'SATU',2:'DUA',3:'TIGA',4:'EMPAT',5:'LIMA',6:'ENAM'};
   const n     = parseInt(kelas);
-  const klsLbl = (ROM[n]||kelas)+'
-('+(NAMA[n]||kelas)+')';
+  const klsLbl = (ROM[n]||kelas)+'\n('+(NAMA[n]||kelas)+')';
   const today = new Date().toLocaleDateString('id-ID',{weekday:'long'});
   const totalRows = jadwalRows.length;
   let h = '<thead><tr>';
@@ -2183,8 +2177,7 @@ function raportGenerate() {
   document.getElementById('rp-avg').style.color    = finalColor;
   document.getElementById('rp-pred').textContent   = finalPred;
   document.getElementById('rp-pred').style.color   = finalColor;
-  document.getElementById('rp-status').textContent = avg>=appConfig.kkm ? 'Naik' : 'Perlu
-Bimbingan';
+  document.getElementById('rp-status').textContent = avg>=appConfig.kkm ? 'Naik' : 'Perlu\nBimbingan';
   document.getElementById('rp-status').style.color = avg>=appConfig.kkm ? '#2E7D32' : '#C62828';
 
   document.getElementById('raport-preview').style.display = 'block';
