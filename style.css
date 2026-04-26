@@ -7,8 +7,11 @@ body { font-family: 'Segoe UI', Arial, sans-serif; background: #F5F5F5; color: #
 
 /* ===== UTILITIES ===== */
 .hidden { display: none !important; }
-/* BUG FIX: Hapus !important agar JS style.display bisa override */
+/* ===== SCREEN BASE ===== */
+/* Semua screen disembunyikan oleh JS saat DOMContentLoaded.
+   Sebelum JS jalan, screen-login tampil sebagai fallback agar tidak blank putih. */
 .screen { display: none; }
+#screen-login { display: flex; } /* Fallback: tampil dulu, JS akan handle */
 
 /* ===== TOAST ===== */
 .toast {
