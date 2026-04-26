@@ -2414,6 +2414,35 @@
   </div>
 </div>
 
+<!-- Modal Preview Import Siswa -->
+<div id="siswa-preview-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:3000;align-items:flex-end;justify-content:center">
+  <div style="background:#fff;border-radius:20px 20px 0 0;width:100%;max-width:480px;max-height:90vh;display:flex;flex-direction:column;overflow:hidden">
+    <!-- Header -->
+    <div style="padding:16px 18px 12px;border-bottom:1px solid #F0F0F0;flex-shrink:0">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+        <div style="font-size:15px;font-weight:800;color:#212121">📋 Preview Data Import</div>
+        <button onclick="siswaImportBatal()" style="background:#F5F5F5;border:none;border-radius:50%;width:30px;height:30px;font-size:14px;cursor:pointer;color:#616161">✕</button>
+      </div>
+      <div style="font-size:12px;color:#9E9E9E" id="siswa-preview-filename">—</div>
+      <div style="font-size:12px;font-weight:700;color:#1B5E20;margin-top:4px" id="siswa-preview-count">—</div>
+    </div>
+
+    <!-- Info -->
+    <div style="padding:10px 18px;background:#E8F5E9;flex-shrink:0;font-size:12px;color:#1B5E20">
+      ✅ Berikut adalah preview <strong>6 data pertama</strong>. Pastikan data sudah benar sebelum menyimpan.
+    </div>
+
+    <!-- Tabel preview -->
+    <div style="overflow:auto;flex:1;padding:12px 18px" id="siswa-preview-table"></div>
+
+    <!-- Tombol -->
+    <div style="padding:14px 18px;border-top:1px solid #F0F0F0;display:flex;gap:10px;flex-shrink:0">
+      <button onclick="siswaImportBatal()" style="flex:1;padding:12px;background:#F5F5F5;color:#616161;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer">Batal</button>
+      <button onclick="siswaImportKonfirmasi()" style="flex:2;padding:12px;background:#1B5E20;color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer">✅ Simpan & Tampilkan Siswa</button>
+    </div>
+  </div>
+</div>
+
 <!-- Modal detail siswa -->
 <div class="modal-overlay hidden" id="modal-siswa" onclick="if(event.target===this)tutupModal()">
   <div class="modal-sheet">

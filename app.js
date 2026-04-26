@@ -2088,21 +2088,27 @@ function siswaImportKonfirmasi() {
   _siswaImportSimpan(data, filename);
   document.getElementById('siswa-preview-overlay').style.display = 'none';
   window._pendingImport = null;
+  // Langsung pindah ke tab Daftar
+  const daftarBtn = document.querySelectorAll('.siswa-tab-btn')[2];
+  if (daftarBtn) daftarBtn.click();
 }
 
 function siswaImportBatal() {
   document.getElementById('siswa-preview-overlay').style.display = 'none';
   window._pendingImport = null;
+  showToast('Import dibatalkan.', '#F57F17');
 }
 
 function _siswaImportSimpan(imported, filename) {
   siswaMaster = [...siswaMaster, ...imported];
   saveAll();
-  document.getElementById('siswa-fname').textContent = '📄 ' + filename;
-  document.getElementById('siswa-fcount').textContent = imported.length + ' siswa berhasil diimport';
-  document.getElementById('siswa-info').classList.add('show');
+  const infoEl = document.getElementById('siswa-info');
+  const fnameEl = document.getElementById('siswa-fname');
+  const fcountEl = document.getElementById('siswa-fcount');
+  if (fnameEl)  fnameEl.textContent  = '📄 ' + filename;
+  if (fcountEl) fcountEl.textContent = imported.length + ' siswa berhasil diimport';
+  if (infoEl)   infoEl.classList.add('show');
   showToast('✅ ' + imported.length + ' siswa berhasil diimport!', '#2E7D32');
-  setTimeout(function() { document.querySelectorAll('.siswa-tab-btn')[2].click(); }, 1200);
 }
 
 function siswaClearImport() {
