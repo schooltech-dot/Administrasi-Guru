@@ -4,6 +4,12 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Sistem Informasi — SD Negeri 3 Kalipang</title>
+<meta name="theme-color" content="#2E7D32" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<meta name="apple-mobile-web-app-title" content="SDN3 Kalipang" />
+<link rel="manifest" href="manifest.json" />
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <link rel="stylesheet" href="style.css" />
 </head>
@@ -44,7 +50,12 @@
   <div class="dash-header">
     <div class="dash-topbar">
       <div class="dash-profile">
-        <div class="dash-avatar">👨‍🏫</div>
+        <!-- Avatar: klik untuk ganti foto -->
+        <div class="dash-avatar" id="dash-avatar-wrap" onclick="avatarSheetOpen()" title="Klik untuk ganti foto profil">
+          <img id="dash-avatar-img" src="" alt="" style="display:none;width:100%;height:100%;object-fit:cover;border-radius:50%"/>
+          <span id="dash-avatar-emoji">👨‍🏫</span>
+          <div class="dash-avatar-edit">✏️</div>
+        </div>
         <div>
           <div class="dash-greeting">Selamat datang,</div>
           <div class="dash-name" id="dash-uname">Guru</div>
@@ -53,11 +64,59 @@
       </div>
       <button class="notif-btn">🔔</button>
     </div>
+
+    <!-- Info strip: tanggal + ringkasan absensi hari ini -->
+    <div class="dash-info-strip">
+      <div class="dash-info-date" id="dash-info-date">—</div>
+      <div class="dash-info-badges">
+        <span class="dash-badge badge-hadir" id="dash-badge-hadir">✅ — hadir</span>
+        <span class="dash-badge badge-alpha" id="dash-badge-alpha">❌ — alpha</span>
+      </div>
+    </div>
   </div>
-  <div class="stats-row">
-    <div class="stat-card"><div class="stat-icon">👩‍🎓</div><div class="stat-num" id="stat-siswa">—</div><div class="stat-lbl">Siswa</div></div>
-    <div class="stat-card"><div class="stat-icon">🏛</div><div class="stat-num">12</div><div class="stat-lbl">Kelas</div></div>
-    <div class="stat-card"><div class="stat-icon">👨‍🏫</div><div class="stat-num" id="stat-guru">—</div><div class="stat-lbl">Guru</div></div>
+
+  <!-- ===== BOTTOM SHEET: Ganti Foto Profil ===== -->
+  <div id="avatar-sheet-overlay" onclick="avatarSheetClose()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:1000"></div>
+  <div id="avatar-sheet" style="display:none;position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:#fff;border-radius:20px 20px 0 0;z-index:1001;padding:20px 20px 32px">
+    <div style="width:40px;height:4px;background:#E0E0E0;border-radius:4px;margin:0 auto 18px"></div>
+    <div style="font-size:15px;font-weight:700;color:#212121;margin-bottom:16px">🖼 Foto Profil</div>
+
+    <!-- Preview foto saat ini -->
+    <div style="text-align:center;margin-bottom:18px">
+      <div id="sheet-avatar-preview" style="width:80px;height:80px;border-radius:50%;background:#E8F5E9;margin:0 auto 8px;display:flex;align-items:center;justify-content:center;font-size:36px;overflow:hidden;border:3px solid #A5D6A7">
+        <img id="sheet-avatar-img" src="" style="display:none;width:100%;height:100%;object-fit:cover"/>
+        <span id="sheet-avatar-emoji">👨‍🏫</span>
+      </div>
+      <div style="font-size:12px;color:#9E9E9E">Foto akan tampil di header dashboard</div>
+    </div>
+
+    <!-- Opsi 1: Upload foto -->
+    <input type="file" id="avatar-file-input" accept="image/*" style="display:none" onchange="avatarHandleUpload(this)"/>
+    <button onclick="document.getElementById('avatar-file-input').click()" style="width:100%;padding:13px;background:#E8F5E9;color:#1B5E20;border:1.5px solid #A5D6A7;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;margin-bottom:10px">
+      📷 Upload Foto dari HP
+    </button>
+
+    <!-- Opsi 2: Pilih emoji avatar -->
+    <div style="font-size:12px;font-weight:600;color:#616161;margin-bottom:8px">Atau pilih avatar:</div>
+    <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-bottom:16px">
+      <div class="emoji-avatar-opt" onclick="avatarPilihEmoji('👨‍🏫')">👨‍🏫</div>
+      <div class="emoji-avatar-opt" onclick="avatarPilihEmoji('👩‍🏫')">👩‍🏫</div>
+      <div class="emoji-avatar-opt" onclick="avatarPilihEmoji('🧑‍🏫')">🧑‍🏫</div>
+      <div class="emoji-avatar-opt" onclick="avatarPilihEmoji('👨‍💼')">👨‍💼</div>
+      <div class="emoji-avatar-opt" onclick="avatarPilihEmoji('👩‍💼')">👩‍💼</div>
+      <div class="emoji-avatar-opt" onclick="avatarPilihEmoji('🧑‍💼')">🧑‍💼</div>
+      <div class="emoji-avatar-opt" onclick="avatarPilihEmoji('👨‍🎓')">👨‍🎓</div>
+      <div class="emoji-avatar-opt" onclick="avatarPilihEmoji('👩‍🎓')">👩‍🎓</div>
+      <div class="emoji-avatar-opt" onclick="avatarPilihEmoji('🧑‍🎓')">🧑‍🎓</div>
+      <div class="emoji-avatar-opt" onclick="avatarPilihEmoji('🏫')">🏫</div>
+      <div class="emoji-avatar-opt" onclick="avatarPilihEmoji('⭐')">⭐</div>
+      <div class="emoji-avatar-opt" onclick="avatarPilihEmoji('🌟')">🌟</div>
+    </div>
+
+    <!-- Hapus foto -->
+    <button id="btn-hapus-foto" onclick="avatarHapus()" style="width:100%;padding:11px;background:#FFEBEE;color:#C62828;border:1.5px solid #EF9A9A;border-radius:12px;font-size:13px;font-weight:700;cursor:pointer">
+      🗑 Hapus Foto / Reset ke Default
+    </button>
   </div>
   <div class="search-wrap">
     <input class="search-box" placeholder="🔍  Cari menu..." oninput="filterMenu(this.value)" />
@@ -81,8 +140,9 @@
       <div class="menu-item" onclick="goScreen('jurnal')"><span class="menu-icon">📓</span><span class="menu-label">Jurnal Guru</span></div>
       <div class="menu-item" onclick="goScreen('rekap')"><span class="menu-icon">📊</span><span class="menu-label">Rekap Absensi</span></div>
       <div class="menu-item" onclick="goScreen('cetak')"><span class="menu-icon">🖨️</span><span class="menu-label">Cetak Dokumen</span></div>
-      <div class="menu-item"><span class="menu-icon">📖</span><span class="menu-label">Perpustakaan</span></div>
+      <div class="menu-item" onclick="goScreen('perpustakaan')"><span class="menu-icon">📖</span><span class="menu-label">Perpustakaan</span></div>
       <div class="menu-item" onclick="goScreen('pengaturan')"><span class="menu-icon">⚙️</span><span class="menu-label">Pengaturan</span></div>
+      <div class="menu-item" onclick="goScreen('notifikasi')" style="position:relative"><span class="menu-icon">🔔</span><span class="menu-label">Pengumuman</span><span id="notif-badge-menu" style="display:none;position:absolute;top:8px;right:8px;background:#C62828;color:#fff;border-radius:50%;width:16px;height:16px;font-size:9px;font-weight:800;display:flex;align-items:center;justify-content:center" id="notif-badge-menu">0</span></div>
     </div>
   </div>
   <div class="bottom-nav">
@@ -100,37 +160,14 @@
       <button class="back-btn" onclick="goScreen('dash')">←</button>
       <div>
         <div class="inner-title">Absensi Kelas</div>
-        <div class="inner-sub">SD Negeri 3 Kalipang</div>
+        <div class="inner-sub" id="abs-sub">SD Negeri 3 Kalipang</div>
       </div>
     </div>
   </div>
   <div class="inner-content">
+
     <div class="card">
-      <div class="card-title">📂 Import Data Siswa dari Excel</div>
-      <div class="upload-zone" id="abs-drop" onclick="document.getElementById('abs-file').click()" ondragover="absDrag(event,true)" ondragleave="absDrag(event,false)" ondrop="absDrop(event)">
-        <div class="upload-icon">📊</div>
-        <div class="upload-text">Klik atau seret file Excel ke sini</div>
-        <div class="upload-sub">Format: .xlsx atau .xls</div>
-      </div>
-      <input type="file" id="abs-file" style="display:none" accept=".xlsx,.xls" onchange="absHandleFile(this.files[0])" />
-      <div class="uploaded-info" id="abs-info">
-        <div><div class="uploaded-name" id="abs-fname"></div><div class="uploaded-count" id="abs-fcount"></div></div>
-        <button class="btn-clear" onclick="absClear()">✕</button>
-      </div>
-      <div class="upload-btns">
-        <button class="btn-upload-primary" onclick="document.getElementById('abs-file').click()">📂 Pilih File Excel</button>
-        <button class="btn-upload-secondary" onclick="absDownloadTemplate()">⬇ Download Template</button>
-      </div>
-      <div class="template-info">
-        <strong>Format kolom:</strong>
-        <div class="col-pills">
-          <span class="col-pill">No</span><span class="col-pill">No. Induk</span><span class="col-pill">NISN</span>
-          <span class="col-pill">Nama Siswa</span><span class="col-pill">Kelas</span><span class="col-pill">Jenis Kelamin</span>
-        </div>
-      </div>
-    </div>
-    <div class="card">
-      <div class="form-row" style="margin-bottom:10px">
+      <div class="form-row">
         <div>
           <label class="form-label">Tanggal <span class="req">*</span></label>
           <input type="date" id="abs-tgl" class="form-input" />
@@ -148,11 +185,16 @@
           </select>
         </div>
       </div>
-      <button class="btn-green" onclick="absLoad()">Tampilkan Daftar Siswa</button>
+      <button class="btn-green" onclick="absLoad()">📋 Tampilkan Daftar Siswa</button>
     </div>
+
     <div id="abs-area">
-      <div class="empty-state"><div class="empty-icon">📋</div><div>Upload Excel atau pilih kelas,<br>lalu klik <strong>Tampilkan</strong></div></div>
+      <div class="empty-state">
+        <div class="empty-icon">📋</div>
+        <div>Pilih tanggal dan kelas,<br>lalu klik <strong>Tampilkan Daftar Siswa</strong></div>
+      </div>
     </div>
+
   </div>
   <div class="bottom-nav">
     <button class="nav-item" onclick="goScreen('dash')"><span class="nav-icon">🏠</span>Beranda</button>
@@ -169,91 +211,155 @@
       <button class="back-btn" onclick="goScreen('dash')">←</button>
       <div>
         <div class="inner-title">Data Guru</div>
-        <div class="inner-sub">SD Negeri 3 Kalipang</div>
+        <div class="inner-sub" id="guru-sub-header">SD Negeri 3 Kalipang</div>
       </div>
     </div>
   </div>
   <div class="inner-content">
+
+    <!-- Tab Buttons (hanya muncul untuk admin/kepsek) -->
     <div class="tab-row">
-      <button class="tab-btn active" onclick="guruTab('import',this)">📂 Import Excel</button>
-      <button class="tab-btn" onclick="guruTab('tambah',this)">➕ Tambah</button>
-      <button class="tab-btn" onclick="guruTab('daftar',this)">👥 Daftar</button>
+      <button class="tab-btn active"  onclick="guruTab('tambah',this)">➕ Tambah</button>
+      <button class="tab-btn"         onclick="guruTab('daftar',this)">👥 Daftar</button>
+      <button class="tab-btn"         onclick="guruTab('kepsek',this)">🏫 Kepala Sekolah</button>
     </div>
-    <div id="guru-tab-import">
-      <div class="card">
-        <div class="card-title">📊 Import Data Guru dari Excel</div>
-        <div class="upload-zone" id="guru-drop" onclick="document.getElementById('guru-file').click()" ondragover="guruDrag(event,true)" ondragleave="guruDrag(event,false)" ondrop="guruDropFile(event)">
-          <div class="upload-icon">📋</div>
-          <div class="upload-text">Klik atau seret file Excel ke sini</div>
-          <div class="upload-sub">Format: .xlsx atau .xls</div>
-        </div>
-        <input type="file" id="guru-file" style="display:none" accept=".xlsx,.xls" onchange="guruHandleFile(this.files[0])" />
-        <div class="uploaded-info" id="guru-info">
-          <div><div class="uploaded-name" id="guru-fname"></div><div class="uploaded-count" id="guru-fcount"></div></div>
-          <button class="btn-clear" onclick="guruClear()">✕</button>
-        </div>
-        <div class="upload-btns">
-          <button class="btn-upload-primary" onclick="document.getElementById('guru-file').click()">📂 Pilih File Excel</button>
-          <button class="btn-upload-secondary" onclick="guruDownloadTemplate()">⬇ Download Template</button>
-        </div>
-        <div class="template-info">
-          <strong>Format kolom:</strong>
-          <div class="col-pills">
-            <span class="col-pill">No</span><span class="col-pill">NIP</span><span class="col-pill">Nama Guru</span>
-            <span class="col-pill">Jabatan</span><span class="col-pill">Mata Pelajaran</span><span class="col-pill">Jenis Kelamin</span>
-          </div>
-        </div>
+
+    <!-- ===== PANEL ADMIN/KEPSEK ===== -->
+    <div id="guru-panel-admin">
+
+    <!-- ===== TAB: TAMBAH GURU ===== -->
+    <div id="guru-tab-tambah">
+
+      <!-- Info link ke cetak -->
+      <div style="background:#E8F5E9;border-radius:12px;padding:10px 14px;font-size:12px;color:#1B5E20;margin-bottom:12px;display:flex;gap:8px;align-items:flex-start">
+        <span>💡</span>
+        <span>Data guru di sini otomatis terhubung ke <strong>header cetak absensi, penilaian, dan raport</strong>. Pastikan nama & NIP sudah benar.</span>
       </div>
-    </div>
-    <div id="guru-tab-tambah" class="hidden">
-      <div class="card">
-        <div class="card-title">➕ Tambah Data Guru</div>
-        <div class="form-row">
-          <div class="form-field">
-            <label class="form-label">NIP</label>
-            <input type="text" id="g-nip" class="form-input" placeholder="197501012000031002" />
-          </div>
-          <div class="form-field">
-            <label class="form-label">Jenis Kelamin</label>
-            <select id="g-jk" class="form-select"><option value="L">Laki-laki</option><option value="P">Perempuan</option></select>
-          </div>
+
+      <div class="card" id="guru-form-card">
+        <div class="card-title" id="guru-form-title">➕ Tambah Data Guru</div>
+
+        <!-- Edit-mode hidden input -->
+        <input type="hidden" id="g-edit-idx" value="-1" />
+
+        <div class="form-field">
+          <label class="form-label">Nama Lengkap <span class="req">*</span></label>
+          <input type="text" id="g-nama" class="form-input" placeholder="Contoh: Sri Wahyuni, S.Pd" />
         </div>
         <div class="form-field">
-          <label class="form-label">Nama Guru <span class="req">*</span></label>
-          <input type="text" id="g-nama" class="form-input" placeholder="Nama lengkap..." />
+          <label class="form-label">NIP</label>
+          <input type="text" id="g-nip" class="form-input" placeholder="198203152005012008 (kosongkan jika GTT)" />
         </div>
-        <div class="form-row">
-          <div class="form-field">
-            <label class="form-label">Jabatan</label>
-            <select id="g-jabatan" class="form-select">
-              <option>Guru Kelas</option><option>Guru Mapel</option><option>Kepala Sekolah</option>
-              <option>Wakil Kepala Sekolah</option><option>Guru BK</option><option>Tenaga Administrasi</option>
-            </select>
-          </div>
-          <div class="form-field">
-            <label class="form-label">Mata Pelajaran</label>
-            <select id="g-mapel" class="form-select">
-              <option value="">-- Pilih --</option>
-              <option>PAIBP</option><option>Pendidikan Pancasila</option><option>Bahasa Indonesia</option>
-              <option>Matematika</option><option>PJOK</option><option>Seni Rupa</option>
-              <option>Ilmu Pengetahuan Alam dan Sosial (IPAS)</option><option>Bahasa Inggris</option>
-              <option>Mulok Bahasa Jawa</option>
-            </select>
-          </div>
+        <div class="form-field">
+          <label class="form-label">Jenis Guru <span class="req">*</span></label>
+          <select id="g-jenis" class="form-select">
+            <option value="Guru Kelas">👩‍🏫 Guru Kelas</option>
+            <option value="Guru Mapel PJOK">🏃 Guru Mapel PJOK</option>
+            <option value="Guru Mapel PAIBP">📖 Guru Mapel PAIBP</option>
+          </select>
         </div>
-        <button class="btn-green" onclick="guruTambah()">➕ Simpan Data Guru</button>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px">
+          <button class="btn-green" id="btn-guru-simpan" onclick="guruTambah()">➕ Simpan</button>
+          <button id="btn-guru-batal" onclick="guruBatalEdit()" style="display:none;padding:12px;background:#FFEBEE;color:#C62828;border:1.5px solid #EF9A9A;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer">✕ Batal Edit</button>
+        </div>
+      </div>
+
+      <!-- Quick preview jumlah -->
+      <div class="guru-stats" style="margin-top:4px">
+        <div class="guru-stat"><div class="guru-stat-num" id="g-total">0</div><div class="guru-stat-lbl">Total Guru</div></div>
+        <div class="guru-stat"><div class="guru-stat-num" id="g-kelas-count">0</div><div class="guru-stat-lbl">Guru Kelas</div></div>
+        <div class="guru-stat"><div class="guru-stat-num" id="g-mapel-count">0</div><div class="guru-stat-lbl">Guru Mapel</div></div>
       </div>
     </div>
+
+    <!-- ===== TAB: DAFTAR GURU ===== -->
     <div id="guru-tab-daftar" class="hidden">
       <div class="guru-stats">
-        <div class="guru-stat"><div class="guru-stat-num" id="g-total">0</div><div class="guru-stat-lbl">Total Guru</div></div>
-        <div class="guru-stat"><div class="guru-stat-num" id="g-total-l">0</div><div class="guru-stat-lbl">Laki-laki</div></div>
-        <div class="guru-stat"><div class="guru-stat-num" id="g-total-p">0</div><div class="guru-stat-lbl">Perempuan</div></div>
+        <div class="guru-stat"><div class="guru-stat-num" id="g-total-d">0</div><div class="guru-stat-lbl">Total</div></div>
+        <div class="guru-stat"><div class="guru-stat-num" id="g-kls-d">0</div><div class="guru-stat-lbl">Guru Kelas</div></div>
+        <div class="guru-stat"><div class="guru-stat-num" id="g-mp-d">0</div><div class="guru-stat-lbl">Guru Mapel</div></div>
       </div>
-      <input class="search-input" placeholder="🔍  Cari nama atau NIP..." oninput="guruCari(this.value)" />
+
+      <!-- Filter jenis -->
+      <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap">
+        <button class="guru-filter-btn active" onclick="guruFilterJenis('',this)">Semua</button>
+        <button class="guru-filter-btn" onclick="guruFilterJenis('Guru Kelas',this)">👩‍🏫 Guru Kelas</button>
+        <button class="guru-filter-btn" onclick="guruFilterJenis('Guru Mapel PJOK',this)">🏃 PJOK</button>
+        <button class="guru-filter-btn" onclick="guruFilterJenis('Guru Mapel PAIBP',this)">📖 PAIBP</button>
+      </div>
+
+      <input class="search-input" placeholder="🔍  Cari nama atau NIP..." oninput="guruCariFilter(this.value)" />
       <div class="guru-list" id="guru-list-el"></div>
+
+      <!-- Export -->
+      <button onclick="guruExportExcel()" style="width:100%;margin-top:10px;padding:11px;background:#E3F2FD;color:#1565C0;border:1.5px solid #90CAF9;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer">⬇ Export Data Guru (.xlsx)</button>
     </div>
+
+    <!-- ===== TAB: KEPALA SEKOLAH ===== -->
+    <div id="guru-tab-kepsek" class="hidden">
+
+      <!-- Penjelasan link cetak -->
+      <div style="background:#E3F2FD;border-radius:12px;padding:12px 14px;font-size:12px;color:#0D47A1;margin-bottom:14px">
+        🔗 <strong>Data di sini otomatis muncul di:</strong><br>
+        <div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:6px">
+          <span style="background:#1565C0;color:#fff;border-radius:6px;padding:3px 9px;font-size:11px;font-weight:600">Lembar Absensi</span>
+          <span style="background:#1565C0;color:#fff;border-radius:6px;padding:3px 9px;font-size:11px;font-weight:600">Rekap Penilaian</span>
+          <span style="background:#1565C0;color:#fff;border-radius:6px;padding:3px 9px;font-size:11px;font-weight:600">Raport Siswa</span>
+          <span style="background:#1565C0;color:#fff;border-radius:6px;padding:3px 9px;font-size:11px;font-weight:600">Lembar Ujian</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">🏫 Identitas Kepala Sekolah</div>
+
+        <div class="form-field">
+          <label class="form-label">Nama Kepala Sekolah <span class="req">*</span></label>
+          <input type="text" id="ks-nama" class="form-input" placeholder="Contoh: Budi Santoso, S.Pd" />
+        </div>
+        <div class="form-field">
+          <label class="form-label">NIP Kepala Sekolah</label>
+          <input type="text" id="ks-nip" class="form-input" placeholder="197501012000031002" />
+        </div>
+        <div class="form-field">
+          <label class="form-label">Kota & Tanggal TTD</label>
+          <input type="text" id="ks-kota-tgl" class="form-input" placeholder="Kalipang, Juli 2025" />
+        </div>
+
+        <button class="btn-green" onclick="guruKepsekSimpan()">💾 Simpan & Terapkan ke Semua Dokumen</button>
+      </div>
+
+      <!-- Preview header cetak -->
+      <div class="card" style="background:linear-gradient(135deg,#E8F5E9,#F1F8E9);border:1.5px solid #A5D6A7">
+        <div class="card-title">👁 Preview Header Dokumen</div>
+        <div style="border:1px solid #C8E6C9;border-radius:10px;background:#fff;padding:12px;font-size:12px;color:#212121">
+          <div style="text-align:center;font-weight:700;font-size:13px" id="prev-nama-sekolah">SD NEGERI 3 KALIPANG</div>
+          <div style="text-align:center;font-size:11px;color:#616161;margin-bottom:8px" id="prev-alamat">Ds. Kalipang, Kec. Grobogan, Kab. Grobogan</div>
+          <div style="border-top:2px solid #1B5E20;border-bottom:1px solid #1B5E20;padding:2px 0;margin-bottom:8px"></div>
+          <div style="display:flex;justify-content:space-between;font-size:11px">
+            <div>Mengetahui,<br>Kepala Sekolah</div>
+            <div style="text-align:right">
+              <span id="prev-kota-tgl">Kalipang, Juli 2025</span><br>
+              Wali Kelas / Guru
+            </div>
+          </div>
+          <div style="margin-top:28px;font-size:11px">
+            <div style="font-weight:700;text-decoration:underline" id="prev-ks-nama">Budi Santoso, S.Pd</div>
+            <div id="prev-ks-nip">NIP. 197501012000031002</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </div><!-- end guru-panel-admin -->
+
+  <!-- ===== PANEL PRIBADI GURU (non-admin) ===== -->
+  <div id="guru-panel-pribadi" style="display:none">
+    <div id="guru-pribadi-content"></div>
   </div>
+
+  </div><!-- end inner-content -->
   <div class="bottom-nav">
     <button class="nav-item" onclick="goScreen('dash')"><span class="nav-icon">🏠</span>Beranda</button>
     <button class="nav-item" onclick="goScreen('absensi')"><span class="nav-icon">✅</span>Absensi</button>
@@ -261,8 +367,6 @@
     <button class="nav-item" onclick="doLogout()"><span class="nav-icon">🚪</span>Keluar</button>
   </div>
 </div>
-
-<!-- ===================== GAME EDUKASI ===================== -->
 <div id="screen-game" class="screen">
   <div class="inner-header game-banner">
     <div class="inner-topbar">
@@ -570,7 +674,7 @@
             <span class="col-pill">Tempat Lahir</span>
             <span class="col-pill">Tanggal Lahir</span>
             <span class="col-pill">Alamat</span>
-            <span class="col-pill">Nama Ortu</span>
+            <span class="col-pill">Nama Ayah</span><span class="col-pill">Nama Ibu</span>
             <span class="col-pill">No HP</span>
           </div>
         </div>
@@ -632,13 +736,17 @@
         </div>
         <div class="form-row">
           <div class="form-field">
-            <label class="form-label">Nama Orang Tua / Wali</label>
-            <input type="text" id="s-ortu" class="form-input" placeholder="Nama orang tua..." />
+            <label class="form-label">Nama Ayah</label>
+            <input type="text" id="s-ayah" class="form-input" placeholder="Nama ayah kandung..." />
           </div>
           <div class="form-field">
-            <label class="form-label">No. HP Orang Tua</label>
-            <input type="text" id="s-hp" class="form-input" placeholder="08xx-xxxx-xxxx" />
+            <label class="form-label">Nama Ibu</label>
+            <input type="text" id="s-ibu" class="form-input" placeholder="Nama ibu kandung..." />
           </div>
+        </div>
+        <div class="form-field">
+          <label class="form-label">No. HP Orang Tua</label>
+          <input type="text" id="s-hp" class="form-input" placeholder="08xx-xxxx-xxxx" />
         </div>
         <button class="btn-green" onclick="siswaTambah()">➕ Simpan Data Siswa</button>
       </div>
@@ -814,18 +922,18 @@
       <button class="back-btn" onclick="goScreen('dash')">←</button>
       <div>
         <div class="inner-title">📚 Materi & Perangkat Ajar</div>
-        <div class="inner-sub">SD Negeri 3 Kalipang</div>
+        <div class="inner-sub" id="mt-sub-header">SD Negeri 3 Kalipang</div>
       </div>
     </div>
   </div>
   <div class="inner-content">
 
-    <!-- Filter -->
+    <!-- Filter Kelas + Mapel (shared semua tab) -->
     <div class="materi-filter-card">
       <div class="materi-filter-row">
         <div>
           <label class="form-label">Kelas <span class="req">*</span></label>
-          <select id="mt-kelas" class="form-select" onchange="materiLoad()">
+          <select id="mt-kelas" class="form-select" onchange="materiTabChanged()">
             <option value="">-- Pilih Kelas --</option>
             <option value="Kelas 1">Kelas 1</option>
             <option value="Kelas 2">Kelas 2</option>
@@ -837,7 +945,7 @@
         </div>
         <div>
           <label class="form-label">Mata Pelajaran <span class="req">*</span></label>
-          <select id="mt-mapel" class="form-select" onchange="materiLoad()">
+          <select id="mt-mapel" class="form-select" onchange="materiTabChanged()">
             <option value="">-- Pilih Mapel --</option>
             <option value="PAIBP">PAIBP</option>
             <option value="Pendidikan Pancasila">Pend. Pancasila</option>
@@ -860,20 +968,161 @@
       </div>
     </div>
 
-    <!-- Info bar -->
-    <div id="mt-info-bar" class="materi-info-bar" style="display:none">
-      <div>
-        <div class="materi-info-text" id="mt-info-label">—</div>
-        <div class="materi-info-sub" id="mt-info-sub">—</div>
-      </div>
-      <div class="materi-semester-badge" id="mt-info-sem">—</div>
+    <!-- Tabs -->
+    <div class="tab-row" id="mt-tab-row">
+      <button class="tab-btn active" onclick="materiTab('perangkat', this)">📋 Perangkat</button>
+      <button class="tab-btn"        onclick="materiTab('jurnal', this)">📓 Jurnal</button>
+      <button class="tab-btn"        onclick="materiTab('rekap', this)">📊 Rekap</button>
     </div>
 
-    <!-- Dokumen List -->
-    <div id="mt-dokumen-area">
-      <div class="empty-state">
-        <div class="empty-icon">📚</div>
-        <div>Pilih kelas dan mata pelajaran<br>untuk melihat perangkat ajar.</div>
+    <!-- ===== TAB: PERANGKAT AJAR ===== -->
+    <div id="mt-tab-perangkat">
+      <div id="mt-info-bar" class="materi-info-bar" style="display:none">
+        <div>
+          <div class="materi-info-text" id="mt-info-label">—</div>
+          <div class="materi-info-sub" id="mt-info-sub">—</div>
+        </div>
+        <div class="materi-semester-badge" id="mt-info-sem">—</div>
+      </div>
+      <div id="mt-dokumen-area">
+        <div class="empty-state">
+          <div class="empty-icon">📚</div>
+          <div>Pilih kelas dan mata pelajaran<br>untuk melihat perangkat ajar.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== TAB: JURNAL HARIAN ===== -->
+    <div id="mt-tab-jurnal" class="hidden">
+
+      <!-- Info konteks aktif -->
+      <div id="mt-jr-konteks" style="display:none;background:#E8F5E9;border-radius:12px;padding:10px 14px;margin-bottom:12px;font-size:12px;color:#1B5E20;font-weight:600">
+        📓 Jurnal untuk: <span id="mt-jr-konteks-label">—</span>
+      </div>
+
+      <!-- Prompt jika belum pilih -->
+      <div id="mt-jr-empty-prompt" style="display:none">
+        <div class="empty-state">
+          <div class="empty-icon">📓</div>
+          <div>Pilih Kelas dan Mata Pelajaran<br>di atas untuk mulai catat jurnal.</div>
+        </div>
+      </div>
+
+      <!-- Form jurnal (muncul jika sudah pilih kelas+mapel) -->
+      <div id="mt-jr-form" style="display:none">
+        <div class="card">
+          <div class="card-title">✏️ Catat Jurnal Hari Ini</div>
+
+          <div class="form-row">
+            <div class="form-field">
+              <label class="form-label">Tanggal <span class="req">*</span></label>
+              <input type="date" id="mt-jr-tgl" class="form-input" />
+            </div>
+            <div class="form-field">
+              <label class="form-label">Jam Ke</label>
+              <select id="mt-jr-jam" class="form-select">
+                <option>Jam 1</option><option>Jam 2</option><option>Jam 3</option>
+                <option>Jam 4</option><option>Jam 5</option><option>Jam 6</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-field">
+            <label class="form-label">Tujuan Pembelajaran / Materi</label>
+            <textarea id="mt-jr-materi" class="form-input" rows="2"
+              placeholder="Contoh: Siswa mampu memahami konsep pecahan sederhana..."
+              style="resize:none"></textarea>
+          </div>
+
+          <div class="form-field">
+            <label class="form-label">Kegiatan Pembelajaran</label>
+            <textarea id="mt-jr-kegiatan" class="form-input" rows="2"
+              placeholder="Contoh: Diskusi kelompok, latihan soal, presentasi..."
+              style="resize:none"></textarea>
+          </div>
+
+          <!-- Kehadiran -->
+          <div class="form-field">
+            <label class="form-label">Kehadiran Siswa</label>
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:4px">
+              <div style="text-align:center">
+                <div style="font-size:11px;font-weight:700;color:#2E7D32;margin-bottom:4px">✅ Hadir</div>
+                <input type="number" id="mt-jr-h" class="form-input" min="0" value="0" style="padding:7px;text-align:center"/>
+              </div>
+              <div style="text-align:center">
+                <div style="font-size:11px;font-weight:700;color:#F57F17;margin-bottom:4px">📋 Izin</div>
+                <input type="number" id="mt-jr-i" class="form-input" min="0" value="0" style="padding:7px;text-align:center"/>
+              </div>
+              <div style="font-size:11px;font-weight:700;color:#1565C0;text-align:center">
+                <div style="margin-bottom:4px">🤒 Sakit</div>
+                <input type="number" id="mt-jr-s" class="form-input" min="0" value="0" style="padding:7px;text-align:center"/>
+              </div>
+              <div style="text-align:center">
+                <div style="font-size:11px;font-weight:700;color:#C62828;margin-bottom:4px">❌ Alpha</div>
+                <input type="number" id="mt-jr-a" class="form-input" min="0" value="0" style="padding:7px;text-align:center"/>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-field">
+            <label class="form-label">Refleksi Pembelajaran</label>
+            <select id="mt-jr-refleksi" class="form-select" onchange="jurnalToggleRefleksi('mt-jr')">
+              <option value="">-- Pilih opsi atau tulis manual --</option>
+              <option>😊 Pembelajaran berjalan baik, siswa aktif dan antusias</option>
+              <option>✅ Semua tujuan pembelajaran tercapai</option>
+              <option>📈 Perlu peningkatan metode mengajar</option>
+              <option>🔄 Materi perlu diulang di pertemuan berikutnya</option>
+              <option>⚠️ Banyak siswa belum memahami materi</option>
+              <option>🎯 Sebagian besar siswa sudah paham, perlu pengayaan</option>
+              <option>📝 Perlu perbaikan soal evaluasi</option>
+              <option value="__manual__">✏️ Tulis refleksi sendiri...</option>
+            </select>
+            <textarea id="mt-jr-refleksi-manual" class="form-input" rows="2"
+              placeholder="Tulis refleksi pembelajaran Anda di sini..."
+              style="resize:none;margin-top:8px;display:none"></textarea>
+          </div>
+
+          <div class="form-field">
+            <label class="form-label">Rencana Tindak Lanjut (RTL)</label>
+            <select id="mt-jr-rtl-opsi" class="form-select" onchange="jurnalToggleRTL('mt-jr')" style="margin-bottom:8px">
+              <option value="">-- Pilih opsi atau tulis manual --</option>
+              <option>Mengulang materi di pertemuan berikutnya</option>
+              <option>Memberikan tugas latihan tambahan</option>
+              <option>Memberikan bimbingan individual kepada siswa yang belum paham</option>
+              <option>Menggunakan media pembelajaran yang lebih menarik</option>
+              <option>Melakukan variasi metode mengajar</option>
+              <option>Koordinasi dengan orang tua siswa yang bermasalah</option>
+              <option>Melanjutkan ke materi berikutnya</option>
+              <option value="__manual__">✏️ Tulis RTL sendiri...</option>
+            </select>
+            <textarea id="mt-jr-catatan" class="form-input" rows="2"
+              placeholder="Tulis rencana tindak lanjut secara detail..."
+              style="resize:none"></textarea>
+          </div>
+
+          <button class="btn-green" onclick="jurnalSimpanFromMateri()">💾 Simpan Jurnal</button>
+        </div>
+
+        <!-- Riwayat jurnal untuk kelas+mapel ini -->
+        <div style="font-size:13px;font-weight:700;color:#212121;margin-bottom:10px;
+          display:flex;align-items:center;justify-content:space-between">
+          📋 Riwayat Jurnal
+          <button onclick="jurnalExportFiltered()" style="background:#E3F2FD;color:#1565C0;border:none;
+            border-radius:8px;padding:6px 12px;font-size:12px;font-weight:700;cursor:pointer">
+            ⬇ Export Excel
+          </button>
+        </div>
+        <div id="mt-jr-list"></div>
+      </div>
+    </div>
+
+    <!-- ===== TAB: REKAP ===== -->
+    <div id="mt-tab-rekap" class="hidden">
+      <div id="mt-rekap-content">
+        <div class="empty-state">
+          <div class="empty-icon">📊</div>
+          <div>Pilih kelas dan mata pelajaran<br>untuk melihat rekap jurnal.</div>
+        </div>
       </div>
     </div>
 
@@ -911,96 +1160,175 @@
   <div class="inner-header">
     <div class="inner-topbar">
       <button class="back-btn" onclick="goScreen('dash')">←</button>
-      <div><div class="inner-title">📓 Jurnal Guru</div><div class="inner-sub">Catatan Refleksi Pembelajaran</div></div>
+      <div>
+        <div class="inner-title">📓 Jurnal Guru</div>
+        <div class="inner-sub">Catatan Refleksi Pembelajaran</div>
+      </div>
     </div>
   </div>
   <div class="inner-content">
 
-    <!-- Form Input -->
-    <div class="card">
-      <div class="card-title">✏️ Input Jurnal Hari Ini</div>
-      <div class="form-row" style="margin-bottom:10px">
-        <div>
-          <label class="form-label">Tanggal <span class="req">*</span></label>
-          <input type="date" id="jr-tgl" class="form-input" />
-        </div>
-        <div>
-          <label class="form-label">Kelas <span class="req">*</span></label>
-          <select id="jr-kelas" class="form-select">
-            <option value="">-- Pilih --</option>
-            <option>Kelas 1</option><option>Kelas 2</option><option>Kelas 3</option>
-            <option>Kelas 4</option><option>Kelas 5</option><option>Kelas 6</option>
-          </select>
-        </div>
-      </div>
-      <div class="form-row" style="margin-bottom:10px">
-        <div>
-          <label class="form-label">Mata Pelajaran</label>
-          <select id="jr-mapel" class="form-select">
-            <option value="">-- Pilih --</option>
-            <option>PAIBP</option><option>Pendidikan Pancasila</option>
-            <option>Bahasa Indonesia</option><option>Matematika</option>
-            <option>PJOK</option><option>Seni Rupa</option>
-            <option>Ilmu Pengetahuan Alam dan Sosial (IPAS)</option>
-            <option>Bahasa Inggris</option><option>Mulok Bahasa Jawa</option>
-          </select>
-        </div>
-        <div>
-          <label class="form-label">Jam Ke</label>
-          <select id="jr-jam" class="form-select">
-            <option>Jam 1</option><option>Jam 2</option><option>Jam 3</option>
-            <option>Jam 4</option><option>Jam 5</option><option>Jam 6</option>
-          </select>
-        </div>
-      </div>
-      <div class="form-field">
-        <label class="form-label">Materi / Tujuan Pembelajaran</label>
-        <textarea id="jr-materi" class="form-input" rows="2" placeholder="Contoh: Memahami konsep bilangan pecahan..." style="resize:vertical"></textarea>
-      </div>
-      <div class="form-field">
-        <label class="form-label">Kegiatan Pembelajaran</label>
-        <textarea id="jr-kegiatan" class="form-input" rows="2" placeholder="Contoh: Diskusi kelompok, latihan soal, presentasi..." style="resize:vertical"></textarea>
-      </div>
-      <div class="form-row" style="margin-bottom:10px">
-        <div>
-          <label class="form-label">Kehadiran Siswa</label>
-          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:4px">
-            <div><label style="font-size:11px;color:#2E7D32;font-weight:600">H</label><input type="number" id="jr-h" class="form-input" min="0" value="0" style="padding:7px;text-align:center" /></div>
-            <div><label style="font-size:11px;color:#F57F17;font-weight:600">I</label><input type="number" id="jr-i" class="form-input" min="0" value="0" style="padding:7px;text-align:center" /></div>
-            <div><label style="font-size:11px;color:#1565C0;font-weight:600">S</label><input type="number" id="jr-s" class="form-input" min="0" value="0" style="padding:7px;text-align:center" /></div>
-            <div><label style="font-size:11px;color:#C62828;font-weight:600">A</label><input type="number" id="jr-a" class="form-input" min="0" value="0" style="padding:7px;text-align:center" /></div>
-          </div>
-        </div>
-        <div>
-          <label class="form-label">Refleksi</label>
-          <select id="jr-refleksi" class="form-select">
-            <option value="">-- Pilih --</option>
-            <option>😊 Pembelajaran berjalan baik</option>
-            <option>📈 Perlu peningkatan metode</option>
-            <option>🔄 Perlu pengulangan materi</option>
-            <option>⚠️ Banyak siswa belum paham</option>
-            <option>✅ Semua tujuan tercapai</option>
-          </select>
-        </div>
-      </div>
-      <div class="form-field">
-        <label class="form-label">Catatan / RTL (Rencana Tindak Lanjut)</label>
-        <textarea id="jr-catatan" class="form-input" rows="2" placeholder="Catatan tambahan atau tindak lanjut..." style="resize:vertical"></textarea>
-      </div>
-      <button class="btn-green" onclick="jurnalSimpan()">💾 Simpan Jurnal</button>
+    <!-- Tab -->
+    <div class="tab-row">
+      <button class="tab-btn active" onclick="jurnalTab('isi',this)">✏️ Isi Jurnal</button>
+      <button class="tab-btn"        onclick="jurnalTab('riwayat',this)">📋 Riwayat</button>
     </div>
 
-    <!-- Riwayat Jurnal -->
-    <div style="font-size:13px;font-weight:700;color:#212121;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between">
-      📋 Riwayat Jurnal
-      <div style="display:flex;gap:8px">
-        <button onclick="jurnalExport()" style="background:#E3F2FD;color:#1565C0;border:none;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:700;cursor:pointer">⬇ Excel</button>
-        <button onclick="jurnalHapusSemua()" style="background:#FFEBEE;color:#C62828;border:none;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:700;cursor:pointer">🗑 Hapus</button>
+    <!-- ===== TAB: ISI JURNAL ===== -->
+    <div id="jr-tab-isi">
+      <div class="card">
+        <div class="card-title">✏️ Input Jurnal Harian</div>
+
+        <div class="form-row">
+          <div class="form-field">
+            <label class="form-label">Tanggal <span class="req">*</span></label>
+            <input type="date" id="jr-tgl" class="form-input"/>
+          </div>
+          <div class="form-field">
+            <label class="form-label">Jam Ke</label>
+            <select id="jr-jam" class="form-select">
+              <option>Jam 1</option><option>Jam 2</option><option>Jam 3</option>
+              <option>Jam 4</option><option>Jam 5</option><option>Jam 6</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-field">
+            <label class="form-label">Kelas <span class="req">*</span></label>
+            <select id="jr-kelas" class="form-select">
+              <option value="">-- Pilih --</option>
+              <option>Kelas 1</option><option>Kelas 2</option><option>Kelas 3</option>
+              <option>Kelas 4</option><option>Kelas 5</option><option>Kelas 6</option>
+            </select>
+          </div>
+          <div class="form-field">
+            <label class="form-label">Mata Pelajaran</label>
+            <select id="jr-mapel" class="form-select">
+              <option value="">-- Pilih --</option>
+              <option>PAIBP</option><option>Pendidikan Pancasila</option>
+              <option>Bahasa Indonesia</option><option>Matematika</option>
+              <option>PJOK</option><option>Seni Rupa</option><option>IPAS</option>
+              <option>Bahasa Inggris</option><option>Mulok Bahasa Jawa</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-field">
+          <label class="form-label">Tujuan Pembelajaran / Materi</label>
+          <textarea id="jr-materi" class="form-input" rows="2"
+            placeholder="Contoh: Siswa mampu memahami konsep bilangan pecahan sederhana..."
+            style="resize:none"></textarea>
+        </div>
+
+        <div class="form-field">
+          <label class="form-label">Kegiatan Pembelajaran</label>
+          <textarea id="jr-kegiatan" class="form-input" rows="2"
+            placeholder="Contoh: Diskusi kelompok, latihan soal, presentasi, games..."
+            style="resize:none"></textarea>
+        </div>
+
+        <!-- Kehadiran -->
+        <div class="form-field">
+          <label class="form-label">Kehadiran Siswa</label>
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:4px">
+            <div style="text-align:center">
+              <div style="font-size:11px;font-weight:700;color:#2E7D32;margin-bottom:4px">✅ Hadir</div>
+              <input type="number" id="jr-h" class="form-input" min="0" value="0" style="padding:7px;text-align:center"/>
+            </div>
+            <div style="text-align:center">
+              <div style="font-size:11px;font-weight:700;color:#F57F17;margin-bottom:4px">📋 Izin</div>
+              <input type="number" id="jr-i" class="form-input" min="0" value="0" style="padding:7px;text-align:center"/>
+            </div>
+            <div style="text-align:center">
+              <div style="font-size:11px;font-weight:700;color:#1565C0;margin-bottom:4px">🤒 Sakit</div>
+              <input type="number" id="jr-s" class="form-input" min="0" value="0" style="padding:7px;text-align:center"/>
+            </div>
+            <div style="text-align:center">
+              <div style="font-size:11px;font-weight:700;color:#C62828;margin-bottom:4px">❌ Alpha</div>
+              <input type="number" id="jr-a" class="form-input" min="0" value="0" style="padding:7px;text-align:center"/>
+            </div>
+          </div>
+        </div>
+
+        <!-- Refleksi: dropdown + manual -->
+        <div class="form-field">
+          <label class="form-label">Refleksi Pembelajaran</label>
+          <select id="jr-refleksi" class="form-select" onchange="jurnalToggleRefleksi('jr')">
+            <option value="">-- Pilih opsi atau tulis manual --</option>
+            <option>😊 Pembelajaran berjalan baik, siswa aktif dan antusias</option>
+            <option>✅ Semua tujuan pembelajaran tercapai</option>
+            <option>📈 Perlu peningkatan metode mengajar</option>
+            <option>🔄 Materi perlu diulang di pertemuan berikutnya</option>
+            <option>⚠️ Banyak siswa belum memahami materi</option>
+            <option>🎯 Sebagian besar siswa sudah paham, perlu pengayaan</option>
+            <option>📝 Perlu perbaikan soal evaluasi</option>
+            <option value="__manual__">✏️ Tulis refleksi sendiri...</option>
+          </select>
+          <textarea id="jr-refleksi-manual" class="form-input" rows="2"
+            placeholder="Tulis refleksi pembelajaran Anda di sini..."
+            style="resize:none;margin-top:8px;display:none"></textarea>
+        </div>
+
+        <!-- RTL / Catatan -->
+        <div class="form-field">
+          <label class="form-label">Rencana Tindak Lanjut (RTL)</label>
+          <select id="jr-rtl-opsi" class="form-select" onchange="jurnalToggleRTL('jr')" style="margin-bottom:8px">
+            <option value="">-- Pilih opsi atau tulis manual --</option>
+            <option>Mengulang materi di pertemuan berikutnya</option>
+            <option>Memberikan tugas latihan tambahan</option>
+            <option>Memberikan bimbingan individual kepada siswa yang belum paham</option>
+            <option>Menggunakan media pembelajaran yang lebih menarik</option>
+            <option>Melakukan variasi metode mengajar</option>
+            <option>Koordinasi dengan orang tua siswa yang bermasalah</option>
+            <option>Melanjutkan ke materi berikutnya</option>
+            <option value="__manual__">✏️ Tulis RTL sendiri...</option>
+          </select>
+          <textarea id="jr-catatan" class="form-input" rows="2"
+            placeholder="Tulis rencana tindak lanjut secara detail..."
+            style="resize:none"></textarea>
+        </div>
+
+        <button class="btn-green" onclick="jurnalSimpan()">💾 Simpan Jurnal</button>
       </div>
     </div>
-    <div id="jurnal-list">
-      <div class="empty-state"><div class="empty-icon">📓</div><div>Belum ada jurnal tersimpan.</div></div>
+
+    <!-- ===== TAB: RIWAYAT ===== -->
+    <div id="jr-tab-riwayat" class="hidden">
+      <!-- Filter -->
+      <div class="card" style="margin-bottom:10px">
+        <div class="form-row">
+          <div class="form-field">
+            <label class="form-label">Kelas</label>
+            <select id="jr-filter-kelas" class="form-select" onchange="jurnalRender()">
+              <option value="">Semua Kelas</option>
+              <option>Kelas 1</option><option>Kelas 2</option><option>Kelas 3</option>
+              <option>Kelas 4</option><option>Kelas 5</option><option>Kelas 6</option>
+            </select>
+          </div>
+          <div class="form-field">
+            <label class="form-label">Mapel</label>
+            <select id="jr-filter-mapel" class="form-select" onchange="jurnalRender()">
+              <option value="">Semua Mapel</option>
+              <option>PAIBP</option><option>Pendidikan Pancasila</option>
+              <option>Bahasa Indonesia</option><option>Matematika</option>
+              <option>PJOK</option><option>Seni Rupa</option><option>IPAS</option>
+              <option>Bahasa Inggris</option><option>Mulok Bahasa Jawa</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <!-- Toolbar -->
+      <div style="display:flex;gap:8px;margin-bottom:12px">
+        <button onclick="jurnalExport()" style="flex:1;padding:10px;background:#E3F2FD;color:#1565C0;border:none;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer">⬇ Export Excel</button>
+        <button onclick="jurnalHapusSemua()" style="padding:10px 14px;background:#FFEBEE;color:#C62828;border:none;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer">🗑 Hapus Semua</button>
+      </div>
+      <!-- List -->
+      <div id="jurnal-list">
+        <div class="empty-state"><div class="empty-icon">📓</div><div>Belum ada jurnal tersimpan.</div></div>
+      </div>
     </div>
+
   </div>
   <div class="bottom-nav">
     <button class="nav-item" onclick="goScreen('dash')"><span class="nav-icon">🏠</span>Beranda</button>
@@ -1009,6 +1337,7 @@
     <button class="nav-item" onclick="doLogout()"><span class="nav-icon">🚪</span>Keluar</button>
   </div>
 </div>
+
 
 <!-- ===================== REKAP ABSENSI ===================== -->
 <div id="screen-rekap" class="screen">
@@ -1359,6 +1688,7 @@
               <option value="3">3 BAB</option><option value="4">4 BAB</option>
               <option value="5" selected>5 BAB</option><option value="6">6 BAB</option>
               <option value="7">7 BAB</option><option value="8">8 BAB</option>
+              <option value="9">9 BAB</option><option value="10">10 BAB</option>
             </select>
           </div>
           <div class="form-field">
@@ -1366,6 +1696,9 @@
             <select id="n-ntp" class="form-select">
               <option value="2">2 TP</option><option value="3">3 TP</option>
               <option value="4" selected>4 TP</option><option value="5">5 TP</option>
+              <option value="6">6 TP</option><option value="7">7 TP</option>
+              <option value="8">8 TP</option><option value="9">9 TP</option>
+              <option value="10">10 TP</option>
             </select>
           </div>
         </div>
@@ -1564,8 +1897,9 @@
 
       <!-- Action buttons -->
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px">
-        <button class="btn-green" onclick="raportPrint()">🖨️ Cetak / PDF</button>
-        <button class="btn-blue" onclick="raportExportExcel()">⬇ Export Excel</button>
+        <button class="btn-green" onclick="raportPrint()">🖨️ Cetak</button>
+        <button onclick="raportExportPDF()" style="flex:1;padding:11px;background:#FFEBEE;color:#C62828;border:1.5px solid #EF9A9A;border-radius:12px;font-size:13px;font-weight:700;cursor:pointer">📄 PDF</button>
+        <button class="btn-blue" onclick="raportExportExcel()">⬇ Excel</button>
       </div>
       <button onclick="goScreen('penilaian')" style="width:100%;margin-top:8px;padding:11px;background:#E8F5E9;color:#1B5E20;border:1.5px solid #A5D6A7;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;">
         📊 Input / Edit Nilai di Penilaian
@@ -1598,8 +1932,16 @@
   </div>
   <div class="inner-content">
 
+    <!-- Banner role-based: muncul kalau guru -->
+    <div id="peng-guru-banner" style="display:none;background:#E3F2FD;border-radius:14px;padding:14px;margin-bottom:14px;border:1.5px solid #90CAF9">
+      <div style="font-size:13px;font-weight:700;color:#0D47A1;margin-bottom:4px">👋 Halaman Pengaturan</div>
+      <div style="font-size:12px;color:#1565C0;line-height:1.6">
+        Pengaturan sistem dikelola oleh <strong>Admin</strong>. Di sini kamu hanya bisa mengelola keamanan akun pribadimu.
+      </div>
+    </div>
+
     <!-- Storage Info -->
-    <div class="card" style="background:#E8F5E9;border:1.5px solid #A5D6A7;margin-bottom:14px">
+    <div class="card" id="peng-storage" style="background:#E8F5E9;border:1.5px solid #A5D6A7;margin-bottom:14px">
       <div class="card-title">💾 Status Penyimpanan Lokal</div>
       <div style="font-size:12px;color:#424242;line-height:1.8;margin-bottom:10px">
         Semua data (siswa, guru, nilai, absensi, jadwal, materi) tersimpan otomatis di browser ini.<br>
@@ -1612,7 +1954,7 @@
     </div>
 
     <!-- Identitas Sekolah -->
-    <div class="setting-section">
+    <div class="setting-section" id="peng-identitas">
       <div class="setting-section-title">🏫 Identitas Sekolah</div>
       <div class="card">
         <div class="form-field">
@@ -1651,7 +1993,7 @@
     </div>
 
     <!-- Tahun Pelajaran -->
-    <div class="setting-section">
+    <div class="setting-section" id="peng-tapel">
       <div class="setting-section-title">📅 Tahun Pelajaran</div>
       <div class="card">
         <div class="form-row">
@@ -1680,7 +2022,7 @@
     </div>
 
     <!-- Kurikulum -->
-    <div class="setting-section">
+    <div class="setting-section" id="peng-kurikulum">
       <div class="setting-section-title">📚 Kurikulum & KKM</div>
       <div class="card">
         <div class="form-row">
@@ -1723,8 +2065,85 @@
     <!-- Tombol Simpan -->
     <button class="btn-green" onclick="pengaturanSimpan()">💾 Simpan Pengaturan</button>
 
-    <!-- Data Management -->
+    <!-- Manajemen Akun -->
     <div class="setting-section">
+      <div class="setting-section-title">🔐 Manajemen Akun & Keamanan</div>
+
+      <!-- Info login aktif -->
+      <div style="background:#E8F5E9;border-radius:10px;padding:10px 14px;font-size:12px;font-weight:600;color:#1B5E20;margin-bottom:10px;" id="cfg-login-info">
+        Login sebagai: —
+      </div>
+
+      <!-- Ganti password sendiri -->
+      <div class="card" style="margin-bottom:10px">
+        <div class="card-title">🔑 Ganti Password Saya</div>
+        <div class="form-field">
+          <label class="form-label">Password Lama</label>
+          <input type="password" id="akun-pw-lama" class="form-input" placeholder="Password saat ini..." />
+        </div>
+        <div class="form-field">
+          <label class="form-label">Password Baru <span class="req">*</span></label>
+          <input type="password" id="akun-pw-baru" class="form-input" placeholder="Min. 6 karakter..." />
+        </div>
+        <button class="btn-green" onclick="akunGantiPassword()">🔑 Ganti Password</button>
+      </div>
+
+      <!-- Daftar akun -->
+      <div class="card" id="peng-akun-daftar" style="margin-bottom:10px">
+        <div class="card-title">👥 Daftar Akun Pengguna</div>
+        <div id="akun-list" style="margin-bottom:10px"></div>
+        <div style="font-size:11px;color:#9E9E9E;margin-bottom:4px">
+          💡 Hubungi Admin jika lupa password akun Anda.
+        </div>
+      </div>
+
+      <!-- Tambah akun baru (hanya tampil jika admin) -->
+      <div class="card" id="peng-akun-tambah">
+        <div class="card-title">➕ Tambah Akun Baru</div>
+        <div class="form-row">
+          <div class="form-field">
+            <label class="form-label">Username <span class="req">*</span></label>
+            <input type="text" id="akun-username" class="form-input" placeholder="guru3" />
+          </div>
+          <div class="form-field">
+            <label class="form-label">Role</label>
+            <select id="akun-role" class="form-select">
+              <option value="guru">👨‍🏫 Guru</option>
+              <option value="kepsek">🏫 Kepala Sekolah</option>
+              <option value="admin">⚙️ Admin</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-field">
+          <label class="form-label">Nama Lengkap <span class="req">*</span></label>
+          <input type="text" id="akun-nama" class="form-input" placeholder="Nama guru..." />
+        </div>
+        <div class="form-field">
+          <label class="form-label">Password <span class="req">*</span></label>
+          <input type="password" id="akun-password" class="form-input" placeholder="Min. 6 karakter..." />
+        </div>
+        <button class="btn-green" onclick="akunTambah()">➕ Buat Akun</button>
+      </div>
+    </div>
+
+    <!-- Tampilan & Dark Mode -->
+    <div class="setting-section" id="peng-tampilan">
+      <div class="setting-section-title">🎨 Tampilan</div>
+      <div class="setting-row" onclick="darkModeToggle()" style="cursor:pointer">
+        <div class="sr-left">
+          <div class="sr-icon" style="background:#1A237E">🌙</div>
+          <div><div class="sr-label">Mode Gelap (Dark Mode)</div><div class="sr-sub">Hemat baterai, nyaman di malam hari</div></div>
+        </div>
+        <div class="sr-right">
+          <div id="dark-mode-toggle" style="width:44px;height:24px;background:#E0E0E0;border-radius:12px;position:relative;transition:background 0.3s">
+            <div id="dark-mode-thumb" style="position:absolute;top:3px;left:3px;width:18px;height:18px;background:#fff;border-radius:50%;transition:left 0.3s;box-shadow:0 1px 3px rgba(0,0,0,0.3)"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Data Management -->
+    <div class="setting-section" id="peng-data">
       <div class="setting-section-title">🗄️ Manajemen Data</div>
       <div class="setting-row" onclick="pengaturanReset()">
         <div class="sr-left">
@@ -1748,6 +2167,253 @@
   </div>
 </div>
 
+<!-- ==================== NOTIFIKASI / PENGUMUMAN ==================== -->
+<div id="screen-notifikasi" class="screen">
+  <div class="inner-header">
+    <div class="inner-topbar">
+      <button class="back-btn" onclick="goScreen('dash')">←</button>
+      <div>
+        <div class="inner-title">🔔 Pengumuman</div>
+        <div class="inner-sub">Informasi & Pemberitahuan Sekolah</div>
+      </div>
+      <button id="notif-btn-tambah" onclick="notifShowForm()" style="display:none;background:#E8F5E9;border:1.5px solid #A5D6A7;color:#1B5E20;border-radius:10px;padding:6px 12px;font-size:12px;font-weight:700;cursor:pointer">+ Buat</button>
+    </div>
+  </div>
+  <div class="inner-content">
+
+    <!-- Form Tambah Pengumuman (hanya untuk admin/kepsek) -->
+    <div id="notif-form-wrap" style="display:none;margin-bottom:14px">
+      <div class="card">
+        <div class="card-title" id="notif-form-title">📢 Buat Pengumuman Baru</div>
+        <input type="hidden" id="notif-edit-id" />
+        <div class="form-field">
+          <label class="form-label">Judul <span class="req">*</span></label>
+          <input type="text" id="notif-judul" class="form-input" placeholder="Judul pengumuman..." />
+        </div>
+        <div class="form-field">
+          <label class="form-label">Isi Pengumuman <span class="req">*</span></label>
+          <textarea id="notif-isi" class="form-input" rows="4" placeholder="Tulis isi pengumuman di sini..." style="resize:vertical;min-height:80px"></textarea>
+        </div>
+        <div class="form-row">
+          <div>
+            <label class="form-label">Kategori</label>
+            <select id="notif-kategori" class="form-select">
+              <option value="umum">📢 Umum</option>
+              <option value="akademik">📚 Akademik</option>
+              <option value="kegiatan">🎉 Kegiatan</option>
+              <option value="penting">🔴 Penting</option>
+            </select>
+          </div>
+          <div>
+            <label class="form-label">Ditujukan ke</label>
+            <select id="notif-target" class="form-select">
+              <option value="semua">Semua Guru</option>
+              <option value="guru">Guru Kelas</option>
+              <option value="pjok">Guru PJOK</option>
+              <option value="pai">Guru PAI</option>
+            </select>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:4px">
+          <button class="btn-green" onclick="notifSimpan()" style="flex:1">💾 Simpan Pengumuman</button>
+          <button onclick="notifHideForm()" style="flex:0;padding:10px 16px;background:#F5F5F5;border:none;border-radius:10px;font-size:13px;cursor:pointer">Batal</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Filter -->
+    <div style="display:flex;gap:8px;margin-bottom:12px;overflow-x:auto;padding-bottom:4px">
+      <button class="notif-filter-btn active" id="nf-semua" onclick="notifFilter('semua',this)">Semua</button>
+      <button class="notif-filter-btn" id="nf-umum" onclick="notifFilter('umum',this)">📢 Umum</button>
+      <button class="notif-filter-btn" id="nf-akademik" onclick="notifFilter('akademik',this)">📚 Akademik</button>
+      <button class="notif-filter-btn" id="nf-kegiatan" onclick="notifFilter('kegiatan',this)">🎉 Kegiatan</button>
+      <button class="notif-filter-btn" id="nf-penting" onclick="notifFilter('penting',this)">🔴 Penting</button>
+    </div>
+
+    <!-- List pengumuman -->
+    <div id="notif-list">
+      <div class="empty-state"><div class="empty-icon">🔔</div><div>Belum ada pengumuman</div></div>
+    </div>
+
+  </div>
+  <div class="bottom-nav">
+    <button class="nav-item" onclick="goScreen('dash')"><span class="nav-icon">🏠</span>Beranda</button>
+    <button class="nav-item active"><span class="nav-icon">🔔</span>Notif</button>
+    <button class="nav-item" onclick="goScreen('pengaturan')"><span class="nav-icon">⚙️</span>Setelan</button>
+    <button class="nav-item" onclick="doLogout()"><span class="nav-icon">🚪</span>Keluar</button>
+  </div>
+</div>
+
+<!-- ==================== PERPUSTAKAAN ==================== -->
+<div id="screen-perpustakaan" class="screen">
+  <div class="inner-header">
+    <div class="inner-topbar">
+      <button class="back-btn" onclick="goScreen('dash')">←</button>
+      <div>
+        <div class="inner-title">📖 Perpustakaan</div>
+        <div class="inner-sub" id="perpus-sub">SD Negeri 3 Kalipang</div>
+      </div>
+    </div>
+  </div>
+  <div class="inner-content">
+
+    <!-- Tab -->
+    <div class="tab-row" id="perpus-tabs">
+      <button class="tab-btn active" onclick="perpusTab('rak',this)">📚 Rak Buku</button>
+      <button class="tab-btn"        onclick="perpusTab('cari',this)">🔍 Cari</button>
+      <button class="tab-btn" id="perpus-tab-tambah-btn" onclick="perpusTab('tambah',this)">➕ Tambah</button>
+    </div>
+
+    <!-- ===== TAB: RAK BUKU ===== -->
+    <div id="perpus-tab-rak">
+      <!-- Filter: Kelas + Mapel Khusus -->
+      <div class="perpus-filter-row" id="perpus-filter-row">
+        <button class="perpus-cat-btn active" onclick="perpusFilterKat('semua',this)">📚 Semua</button>
+        <button class="perpus-cat-btn" onclick="perpusFilterKat('kelas_1',this)">🔵 Kelas 1</button>
+        <button class="perpus-cat-btn" onclick="perpusFilterKat('kelas_2',this)">🟢 Kelas 2</button>
+        <button class="perpus-cat-btn" onclick="perpusFilterKat('kelas_3',this)">🟡 Kelas 3</button>
+        <button class="perpus-cat-btn" onclick="perpusFilterKat('kelas_4',this)">🟠 Kelas 4</button>
+        <button class="perpus-cat-btn" onclick="perpusFilterKat('kelas_5',this)">🔴 Kelas 5</button>
+        <button class="perpus-cat-btn" onclick="perpusFilterKat('kelas_6',this)">🟣 Kelas 6</button>
+        <button class="perpus-cat-btn" onclick="perpusFilterKat('PJOK',this)">🏃 PJOK</button>
+        <button class="perpus-cat-btn" onclick="perpusFilterKat('PAIBP',this)">📖 PAIBP</button>
+        <button class="perpus-cat-btn" onclick="perpusFilterKat('umum',this)">🌐 Umum</button>
+      </div>
+
+      <!-- Konten rak -->
+      <div id="perpus-rak-content"></div>
+    </div>
+
+    <!-- ===== TAB: CARI ===== -->
+    <div id="perpus-tab-cari" class="hidden">
+      <input class="search-input" id="perpus-search-input"
+        placeholder="🔍  Cari judul, penulis, atau kategori..."
+        oninput="perpusCari(this.value)" style="margin-bottom:10px"/>
+      <div id="perpus-cari-result"></div>
+    </div>
+
+    <!-- ===== TAB: TAMBAH ===== -->
+    <div id="perpus-tab-tambah" class="hidden">
+      <div class="card">
+        <div class="card-title" id="perpus-form-title">➕ Tambah Koleksi Baru</div>
+        <input type="hidden" id="perpus-edit-id" value=""/>
+
+        <div class="form-field">
+          <label class="form-label">Judul <span class="req">*</span></label>
+          <input type="text" id="perpus-judul" class="form-input" placeholder="Contoh: Laskar Pelangi"/>
+        </div>
+        <div class="form-field">
+          <label class="form-label">Penulis / Sumber</label>
+          <input type="text" id="perpus-penulis" class="form-input" placeholder="Contoh: Andrea Hirata / Kemdikbud"/>
+        </div>
+        <div class="form-row">
+          <div class="form-field">
+            <label class="form-label">Kategori <span class="req">*</span></label>
+            <select id="perpus-kategori" class="form-select">
+              <option value="Pelajaran">📚 Pelajaran</option>
+              <option value="Fiksi">📖 Fiksi</option>
+              <option value="Video">🎥 Video</option>
+              <option value="Link Edukasi">🌐 Link Edukasi</option>
+              <option value="Referensi">🔬 Referensi</option>
+              <option value="Seni & Budaya">🎨 Seni & Budaya</option>
+            </select>
+          </div>
+          <div class="form-field">
+            <label class="form-label">Mapel Khusus</label>
+            <select id="perpus-mapel" class="form-select" onchange="perpusToggleKelas()">
+              <option value="">— Tidak —</option>
+              <option value="PJOK">🏃 PJOK</option>
+              <option value="PAIBP">📖 PAIBP</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-field" id="perpus-field-kelas">
+          <label class="form-label">Untuk Kelas</label>
+          <select id="perpus-kelas" class="form-select">
+            <option value="">Semua Kelas</option>
+            <option value="1">Kelas 1</option>
+            <option value="2">Kelas 2</option>
+            <option value="3">Kelas 3</option>
+            <option value="4">Kelas 4</option>
+            <option value="5">Kelas 5</option>
+            <option value="6">Kelas 6</option>
+          </select>
+          <div style="font-size:11px;color:#9E9E9E;margin-top:3px" id="perpus-kelas-hint">
+            💡 Kosongkan jika berlaku untuk semua kelas
+          </div>
+        </div>
+        <div class="form-field">
+          <label class="form-label">Link <span class="req">*</span></label>
+          <input type="url" id="perpus-link" class="form-input"
+            placeholder="https://drive.google.com/... atau https://youtube.com/..."/>
+          <div style="font-size:11px;color:#9E9E9E;margin-top:4px">
+            💡 Google Drive, YouTube, website edukasi, dll
+          </div>
+        </div>
+        <div class="form-field">
+          <label class="form-label">URL Cover (opsional)</label>
+          <input type="url" id="perpus-cover" class="form-input"
+            placeholder="https://... (gambar sampul buku)"/>
+        </div>
+        <div class="form-field">
+          <label class="form-label">Deskripsi Singkat</label>
+          <textarea id="perpus-desk" class="form-input" rows="2"
+            placeholder="Ringkasan atau keterangan singkat..." style="resize:none"></textarea>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px">
+          <button class="btn-green" id="perpus-btn-simpan" onclick="perpusSimpan()">💾 Simpan</button>
+          <button id="perpus-btn-batal" onclick="perpusBatalEdit()"
+            style="display:none;padding:12px;background:#FFEBEE;color:#C62828;border:1.5px solid #EF9A9A;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer">✕ Batal</button>
+        </div>
+      </div>
+
+      <!-- Tips link Drive -->
+      <div class="card" style="background:#FFF8E1;border:1.5px solid #FFE082;margin-top:0">
+        <div class="card-title">💡 Tips Link Google Drive</div>
+        <div style="font-size:12px;color:#5D4037;line-height:1.7">
+          1. Upload PDF ke Google Drive<br>
+          2. Klik kanan → <strong>Bagikan</strong> → <strong>Siapa saja yang memiliki link</strong><br>
+          3. Salin link & tempel di kolom Link di atas<br>
+          4. PDF akan bisa dibaca langsung di aplikasi ini 📄
+        </div>
+      </div>
+    </div>
+
+  </div>
+  <div class="bottom-nav">
+    <button class="nav-item" onclick="goScreen('dash')"><span class="nav-icon">🏠</span>Beranda</button>
+    <button class="nav-item active"><span class="nav-icon">📖</span>Perpustakaan</button>
+    <button class="nav-item" onclick="goScreen('siswa')"><span class="nav-icon">👥</span>Siswa</button>
+    <button class="nav-item" onclick="doLogout()"><span class="nav-icon">🚪</span>Keluar</button>
+  </div>
+</div>
+
+<!-- Modal baca buku / embed -->
+<div id="perpus-modal-overlay" onclick="perpusModalTutup()"
+  style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:2000"></div>
+<div id="perpus-modal"
+  style="display:none;position:fixed;inset:0;z-index:2001;display:none;flex-direction:column;background:#fff;max-width:480px;margin:auto;border-radius:16px 16px 0 0;bottom:0;top:auto;height:90vh">
+  <div style="padding:14px 16px;display:flex;align-items:center;gap:10px;border-bottom:1px solid #F0F0F0;flex-shrink:0">
+    <div style="flex:1;min-width:0">
+      <div id="perpus-modal-judul" style="font-size:14px;font-weight:700;color:#212121;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"></div>
+      <div id="perpus-modal-sub"   style="font-size:11px;color:#9E9E9E"></div>
+    </div>
+    <button onclick="perpusModalTutup()" style="background:#F5F5F5;border:none;border-radius:50%;width:32px;height:32px;font-size:16px;cursor:pointer;flex-shrink:0">✕</button>
+  </div>
+  <div id="perpus-modal-body" style="flex:1;overflow:hidden;position:relative"></div>
+  <div style="padding:12px 16px;border-top:1px solid #F0F0F0;display:flex;gap:8px;flex-shrink:0">
+    <a id="perpus-modal-link-btn" href="#" target="_blank" rel="noopener"
+      style="flex:1;padding:12px;background:#1B5E20;color:#fff;border-radius:10px;font-size:13px;font-weight:700;text-align:center;text-decoration:none">
+      🔗 Buka di Browser
+    </a>
+    <button onclick="perpusModalTutup()"
+      style="padding:12px 18px;background:#F5F5F5;color:#616161;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer">
+      Tutup
+    </button>
+  </div>
+</div>
+
 <!-- Modal detail siswa -->
 <div class="modal-overlay hidden" id="modal-siswa" onclick="if(event.target===this)tutupModal()">
   <div class="modal-sheet">
@@ -1757,8 +2423,22 @@
   </div>
 </div>
 
-<!-- TOAST -->
-<div class="toast" id="toast"></div>
+<!-- POPUP NOTIFIKASI -->
+<div id="popup-notif" onclick="popupDismiss()">
+  <div id="popup-box">
+    <div id="popup-icon-wrap">
+      <span id="popup-icon"></span>
+    </div>
+    <div id="popup-body">
+      <div id="popup-title"></div>
+      <div id="popup-msg"></div>
+    </div>
+    <button id="popup-close" onclick="event.stopPropagation();popupDismiss()">✕</button>
+  </div>
+  <div id="popup-bar-wrap">
+    <div id="popup-bar"></div>
+  </div>
+</div>
 
 <!-- ===================== DASHBOARD KEPALA SEKOLAH ===================== -->
 <div id="screen-kepsek" class="screen">
