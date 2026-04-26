@@ -1009,18 +1009,137 @@ function guruRenderPribadi() {
   const el = document.getElementById('guru-pribadi-content');
   if (!el || !sessionUser) return;
 
-  // Cari data guru berdasarkan username (addedBy) atau cocokkan nama dari akun
-  const accounts = LS.get('user_accounts', []);
-  const akun = accounts.find(a => a.username === sessionUser.username);
-  const namaAkun = akun ? akun.nama : sessionUser.nama;
+  const accounts  = LS.get('user_accounts', []);
+  const akun      = accounts.find(a => a.username === sessionUser.username);
+  const namaAkun  = akun ? akun.nama : sessionUser.nama;
 
-  // Match by nama (flexible: cek include atau starts with)
-  let myData = guruData.find(g =>
-    g.nama && namaAkun &&
-    (g.nama.toLowerCase() === namaAkun.toLowerCase() ||
-     g.nama.toLowerCase().includes(namaAkun.toLowerCase().split(',')[0]) ||
-     namaAkun.toLowerCase().includes(g.nama.toLowerCase().split(',')[0]))
-  );
+  // Prioritas 1: cocok by username yang disimpan saat simpan data
+  let myData = guruData.find(g => g._username === sessionUser.username);
+
+  // Prioritas 2: cocok by nama akun
+  if (!myData && namaAkun) {
+    const namaLower = namaAkun.toLowerCase();
+    myData = guruData.find(g => g.nama && (
+      g.nama.toLowerCase() === namaLower ||
+      g.nama.toLowerCase().includes(namaLower.split(',')[0].trim()) ||
+      namaLower.includes(g.nama.toLowerCase().split(',')[0].trim())
+    ));
+  }
+
+  const jenisIcon = { 'Guru Kelas':'👩‍🏫','Guru Mapel PJOK':'🏃','Guru Mapel PAIBP':'📖' };
+  const jenisBg   = { 'Guru Kelas':'#E8F5E9','Guru Mapel PJOK':'#E3F2FD','Guru Mapel PAIBP':'#FFF8E1' };
+  const jenisClr  = { 'Guru Kelas':'#2E7D32','Guru Mapel PJOK':'#1565C0','Guru Mapel PAIBP':'#E65100' };
+
+  if (myData) {
+    const icon     = jenisIcon[myData.jenisGuru] || '👤';
+    const bg       = jenisBg[myData.jenisGuru]   || '#F5F5F5';
+    const clr      = jenisClr[myData.jenisGuru]  || '#424242';
+    const realIdx  = guruData.indexOf(myData);
+    const nipText  = myData.nip && myData.nip !== '-' ? myData.nip : '—';
+    const cfg      = LS.get('app_config', {});
+
+    // Simpan username ke record ini agar next match lebih akurat
+    if (!myData._username) {
+      guruData[realIdx]._username = sessionUser.username;
+      saveAll();
+    }
+
+    el.innerHTML = `
+      <!-- Profil card -->
+      <div class="card" style="text-align:center;padding:28px 16px 20px;background:linear-gradient(135deg,${bg},#fff)">
+        <div style="font-size:56px;margin-bottom:10px">${icon}</div>
+        <div style="font-size:18px;font-weight:800;color:#212121;margin-bottom:4px">${myData.nama}</div>
+        <div style="font-size:12px;color:#9E9E9E;margin-bottom:14px">NIP: ${nipText}</div>
+        <span style="background:${bg};color:${clr};border-radius:20px;padding:5px 18px;font-size:12px;font-weight:700">
+          ${icon} ${myData.jenisGuru || '—'}
+        </span>
+      </div>
+
+      <!-- Info sekolah -->
+      <div class="card" style="margin-top:0">
+        <div class="card-title">🏫 Informasi</div>
+        <div class="guru-info-row">
+          <span class="guru-info-lbl">Sekolah</span>
+          <span class="guru-info-val">${cfg.namaSekolah || 'SD Negeri 3 Kalipang'}</span>
+        </div>
+        <div class="guru-info-row">
+          <span class="guru-info-lbl">Username</span>
+          <span class="guru-info-val">@${sessionUser.username}</span>
+        </div>
+        <div class="guru-info-row">
+          <span class="guru-info-lbl">Status</span>
+          <span class="guru-info-val">${myData.jenisGuru || 'Guru'}</span>
+        </div>
+      </div>
+
+      <!-- Form edit (collapsed by default, expand on click) -->
+      <div class="card" style="margin-top:0">
+        <div style="display:flex;align-items:center;justify-content:space-between;cursor:pointer"
+             onclick="guruToggleEditForm()">
+          <div class="card-title" style="margin:0">✏️ Edit Data Saya</div>
+          <span id="gp-toggle-icon" style="font-size:18px;color:#9E9E9E">▼</span>
+        </div>
+        <div id="gp-form-body" style="display:none;margin-top:14px">
+          <input type="hidden" id="gp-edit-idx" value="${realIdx}"/>
+          <div class="form-field">
+            <label class="form-label">Nama Lengkap <span class="req">*</span></label>
+            <input type="text" id="gp-nama" class="form-input" value="${myData.nama}"/>
+          </div>
+          <div class="form-field">
+            <label class="form-label">NIP</label>
+            <input type="text" id="gp-nip" class="form-input" value="${myData.nip !== '-' ? myData.nip : ''}"/>
+          </div>
+          <div class="form-field">
+            <label class="form-label">Jenis Guru</label>
+            <select id="gp-jenis" class="form-select">
+              <option value="Guru Kelas"       ${myData.jenisGuru==='Guru Kelas'?'selected':''}>👩‍🏫 Guru Kelas</option>
+              <option value="Guru Mapel PJOK"  ${myData.jenisGuru==='Guru Mapel PJOK'?'selected':''}>🏃 Guru Mapel PJOK</option>
+              <option value="Guru Mapel PAIBP" ${myData.jenisGuru==='Guru Mapel PAIBP'?'selected':''}>📖 Guru Mapel PAIBP</option>
+            </select>
+          </div>
+          <button class="btn-green" onclick="guruSimpanPribadi()">💾 Simpan Perubahan</button>
+        </div>
+      </div>`;
+  } else {
+    // Belum ada → form pengisian
+    el.innerHTML = `
+      <div style="background:#FFF8E1;border-radius:12px;padding:14px;margin-bottom:14px;font-size:12px;color:#E65100;line-height:1.6">
+        ⚠️ <strong>Data Anda belum terdaftar.</strong><br>
+        Isi form di bawah agar nama Anda muncul di dokumen sekolah (absensi, raport, penilaian).
+      </div>
+      <div class="card">
+        <div class="card-title">📝 Lengkapi Data Saya</div>
+        <input type="hidden" id="gp-edit-idx" value="-1"/>
+        <div class="form-field">
+          <label class="form-label">Nama Lengkap <span class="req">*</span></label>
+          <input type="text" id="gp-nama" class="form-input" placeholder="Contoh: Sri Wahyuni, S.Pd"/>
+        </div>
+        <div class="form-field">
+          <label class="form-label">NIP</label>
+          <input type="text" id="gp-nip" class="form-input" placeholder="Kosongkan jika GTT"/>
+        </div>
+        <div class="form-field">
+          <label class="form-label">Jenis Guru <span class="req">*</span></label>
+          <select id="gp-jenis" class="form-select">
+            <option value="Guru Kelas">👩‍🏫 Guru Kelas</option>
+            <option value="Guru Mapel PJOK">🏃 Guru Mapel PJOK</option>
+            <option value="Guru Mapel PAIBP">📖 Guru Mapel PAIBP</option>
+          </select>
+        </div>
+        <button class="btn-green" onclick="guruSimpanPribadi()">💾 Simpan Data Saya</button>
+      </div>`;
+  }
+}
+
+// Toggle collapse form edit
+function guruToggleEditForm() {
+  const body    = document.getElementById('gp-form-body');
+  const icon    = document.getElementById('gp-toggle-icon');
+  if (!body) return;
+  const open = body.style.display === 'none';
+  body.style.display  = open ? 'block' : 'none';
+  if (icon) icon.textContent = open ? '▲' : '▼';
+}
 
   const jenisIcon  = { 'Guru Kelas': '👩‍🏫', 'Guru Mapel PJOK': '🏃', 'Guru Mapel PAIBP': '📖' };
   const jenisBg    = { 'Guru Kelas': '#E8F5E9', 'Guru Mapel PJOK': '#E3F2FD', 'Guru Mapel PAIBP': '#FFF8E1' };
@@ -1113,13 +1232,21 @@ function guruSimpanPribadi() {
   const editIdx = parseInt(document.getElementById('gp-edit-idx').value);
 
   if (editIdx >= 0) {
-    guruData[editIdx] = { ...guruData[editIdx], nip, nama, jenisGuru: jenis };
+    guruData[editIdx] = {
+      ...guruData[editIdx],
+      nip, nama, jenisGuru: jenis,
+      _username: sessionUser.username  // pastikan username tersimpan
+    };
   } else {
-    guruData.push({ no: String(guruData.length + 1), nip, nama, jenisGuru: jenis });
+    guruData.push({
+      no: String(guruData.length + 1),
+      nip, nama, jenisGuru: jenis,
+      _username: sessionUser.username
+    });
   }
   saveAll();
   showToast('✅ Data pribadi berhasil diperbarui!', '#2E7D32');
-  guruRenderPribadi(); // refresh tampilan
+  guruRenderPribadi();
 }
 
 function guruTab(tab, el) {
