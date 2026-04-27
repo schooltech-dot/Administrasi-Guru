@@ -117,7 +117,7 @@ function goScreen(id) {
   if (id === 'perpustakaan') perpusLoad();
 }
 
-window.addEventListener('DOMContentLoaded', async function () {
+window.addEventListener('DOMContentLoaded', function () {
   // Sembunyikan semua screen dulu
   document.querySelectorAll('.screen').forEach(s => { s.style.display = 'none'; });
 
@@ -128,40 +128,31 @@ window.addEventListener('DOMContentLoaded', async function () {
   if (absEl) absEl.value = tgl;
 
   // Init data & modul — guard typeof agar tidak crash jika fungsi tidak ada
-  try { if (typeof initPenilaian  === 'function') initPenilaian(); } catch(e) { console.warn('initPenilaian error:', e); }
-  try {
-    if (typeof initJadwalDemo === 'function') {
-      const jd = (typeof jadwalData !== 'undefined') ? jadwalData : {};
-      if (Object.keys(jd).length === 0) initJadwalDemo();
-    }
-  } catch(e) { console.warn('initJadwalDemo error:', e); }
-  try { if (typeof materiInit === 'function') materiInit(); } catch(e) { console.warn('materiInit error:', e); }
-  try { if (typeof jurnalInit === 'function') jurnalInit(); } catch(e) { console.warn('jurnalInit error:', e); }
+  if (typeof initPenilaian  === 'function') initPenilaian();
+  if (typeof initJadwalDemo === 'function') {
+    const jd = (typeof jadwalData !== 'undefined') ? jadwalData : {};
+    if (Object.keys(jd).length === 0) initJadwalDemo();
+  }
+  if (typeof materiInit === 'function') materiInit();
+  if (typeof jurnalInit === 'function') jurnalInit();
 
-  // BUGFIX: initDefaultAccounts adalah async — harus di-await agar akun
-  // sudah tersimpan di localStorage sebelum login screen ditampilkan.
-  try { await initDefaultAccounts(); } catch(e) { console.warn('initDefaultAccounts error:', e); }
+  // ── Restore sesi: initDefaultAccounts async, tapi kita tidak perlu await
+  //    karena hanya perlu akun saat login, bukan saat restore sesi ──
+  initDefaultAccounts();
 
   // Restore sesi dari localStorage
-  try {
-    if (sessionUser) {
-      const rl = { guru: 'Guru', kepsek: 'Kepala Sekolah', admin: 'Administrator' };
-      const uname = document.getElementById('dash-uname');
-      const urole = document.getElementById('dash-role');
-      if (uname) uname.textContent = sessionUser.nama;
-      if (urole) urole.textContent = (rl[sessionUser.role] || sessionUser.role) + ' • SD Negeri 3 Kalipang';
-      setTimeout(function () { if (typeof avatarLoad === 'function') avatarLoad(); }, 50);
-      const target = sessionUser.role === 'kepsek' ? 'kepsek' : 'dash';
-      goScreen(target);
-      idleStart();
-    } else {
-      document.getElementById('screen-login').style.display = 'flex';
-    }
-  } catch(e) {
-    // Fallback: jika ada error apapun, tetap tampilkan halaman login
-    console.error('App init error:', e);
-    const loginEl = document.getElementById('screen-login');
-    if (loginEl) loginEl.style.display = 'flex';
+  if (sessionUser) {
+    const rl = { guru: 'Guru', kepsek: 'Kepala Sekolah', admin: 'Administrator' };
+    const uname = document.getElementById('dash-uname');
+    const urole = document.getElementById('dash-role');
+    if (uname) uname.textContent = sessionUser.nama;
+    if (urole) urole.textContent = (rl[sessionUser.role] || sessionUser.role) + ' • SD Negeri 3 Kalipang';
+    setTimeout(function () { if (typeof avatarLoad === 'function') avatarLoad(); }, 50);
+    const target = sessionUser.role === 'kepsek' ? 'kepsek' : 'dash';
+    goScreen(target);
+    idleStart();
+  } else {
+    document.getElementById('screen-login').style.display = 'flex';
   }
 });
 
